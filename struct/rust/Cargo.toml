@@ -1,0 +1,9 @@
+[package]
+name = "struct"
+version = "0.1.0"
+authors = ["Gosuke Miyashita <gosukenator@gmail.com>"]
+
+[dependencies]
+
+[lib]
+crate-type = ["cdylib"]
