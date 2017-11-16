@@ -1,0 +1,2 @@
+puts Strings.echo("Hello")
+
