@@ -4,7 +4,7 @@ use libc::*;
 use std::ffi::{CStr, CString};
 
 #[no_mangle]
-pub extern "C" fn echo(ptr: *const c_char) -> *const c_char {
+pub extern "C" fn emphasize(ptr: *const c_char) -> *const c_char {
     let s = unsafe {
             assert!(!ptr.is_null());
             CStr::from_ptr(ptr)

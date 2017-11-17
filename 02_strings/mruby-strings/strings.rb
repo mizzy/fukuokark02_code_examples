@@ -1,2 +1,2 @@
-puts Strings.echo("Hello")
+puts Strings.emphasize("Hello")
 

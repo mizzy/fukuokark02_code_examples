@@ -5,7 +5,7 @@ require 'ffi'
 module Strings
   extend FFI::Library
   ffi_lib 'strings'
-  attach_function :echo, [:string], :string
+  attach_function :emphasize, [:string], :string
 end
 
-puts Strings.echo("Hello")
+puts Strings.emphasize("Hello")
