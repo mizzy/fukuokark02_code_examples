@@ -69,7 +69,7 @@ static void mrb_file_free(mrb_state *mrb, void *ptr)
     file_free(ptr);
 }
 
-void mrb_mruby_object_gem_init(mrb_state *mrb)
+void mrb_mruby_trait_gem_init(mrb_state *mrb)
 {   
     struct RClass *s;
     struct RClass *f;
@@ -82,6 +82,6 @@ void mrb_mruby_object_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, f, "mode", mode, MRB_ARGS_NONE());
 }
 
-void mrb_mruby_object_gem_final(mrb_state *mrb)
+void mrb_mruby_trait_gem_final(mrb_state *mrb)
 {
 }

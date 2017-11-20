@@ -11,4 +11,4 @@ MRUBY_CONFIG=../build_config.rb rake all
 popd
 
 # Run integers.rb
-LD_LIBRARY_PATH=../rust/target/debug ./mruby/bin/mruby object.rb
+LD_LIBRARY_PATH=../rust/target/debug ./mruby/bin/mruby trait.rb
