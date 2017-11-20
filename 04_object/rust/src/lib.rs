@@ -1,43 +1,41 @@
-#[derive(Debug, Copy, Clone)]
-pub struct Point {
-    x: i32,
-    y: i32,
+extern crate libc;
+
+use std::ffi::CStr;
+use libc::{c_char, int32_t};
+
+#[derive(Copy, Clone)]
+pub struct Specinfra;
+
+#[derive(Copy, Clone)]
+pub struct File<'a> {
+    name: &'a str,
 }
 
-impl Point {
-    fn new(x: i32, y: i32) -> Self {
-        Point { x: x, y: y }
+impl Specinfra {
+    pub fn new() -> Specinfra {
+        Specinfra
     }
 
-    fn add(&mut self, other: &Point) -> &Self {
-        self.x += other.x;
-        self.y += other.y;
-        self
+    pub fn file(self, name: &str) -> File {
+        File { name: name }
+    }
+}
+
+impl<'a> File<'a> {
+    pub fn mode(self) -> i32 {
+        // パーミッションを取得して返す処理を入れる
+        0o644
     }
 }
 
 #[no_mangle]
-pub extern "C" fn point_new(x: i32, y: i32) -> *const Point {
-    let p = Point::new(x, y);
-    Box::into_raw(Box::new(p))
+pub extern "C" fn specinfra_new() -> *const Specinfra {
+    let s = Specinfra::new();
+    Box::into_raw(Box::new(s))
 }
 
 #[no_mangle]
-pub extern "C" fn point_add(ptr1: *mut Point, ptr2: *const Point) -> *mut Point {
-    let p1 = unsafe {
-        assert!(!ptr1.is_null());
-        &mut *ptr1
-    };
-    let p2 = unsafe {
-        assert!(!ptr2.is_null());
-        &*ptr2
-    };
-    p1.add(&p2);
-    Box::into_raw(Box::new(*p1))
-}
-
-#[no_mangle]
-pub extern "C" fn point_free(ptr: *mut Point) {
+pub extern "C" fn specinfra_free(ptr: *mut Specinfra) {
     if ptr.is_null() {
         return;
     }
@@ -47,10 +45,39 @@ pub extern "C" fn point_free(ptr: *mut Point) {
 }
 
 #[no_mangle]
-pub extern "C" fn point_print(ptr: *mut Point) {
-    let p = unsafe {
+pub extern "C" fn specinfra_file<'a>(ptr: *const Specinfra,
+                                     name: *const c_char)
+                                     -> *const File<'a> {
+    let s = unsafe {
         assert!(!ptr.is_null());
         &*ptr
     };
-    println!("{:?}", p);
+
+    let name = unsafe {
+        assert!(!name.is_null());
+        CStr::from_ptr(name)
+    };
+
+    let f = s.file(name.to_str().unwrap());
+    Box::into_raw(Box::new(f))
+}
+
+#[no_mangle]
+pub extern "C" fn file_mode(ptr: *const File) -> int32_t {
+    let f = unsafe {
+        assert!(!ptr.is_null());
+        &*ptr
+    };
+
+    f.mode()
+}
+
+#[no_mangle]
+pub extern "C" fn file_free(ptr: *mut File) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
 }

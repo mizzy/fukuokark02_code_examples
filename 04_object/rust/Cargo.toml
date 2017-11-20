@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Gosuke Miyashita <gosukenator@gmail.com>"]
 
 [dependencies]
+libc = "0.2.33"
 
 [lib]
 crate-type = ["cdylib"]
