@@ -3,15 +3,15 @@
 #include "mruby/string.h"
 
 typedef int specinfra;
-typedef int file_resource;
+typedef int file;
 
 extern specinfra *specinfra_new(void);
-extern file_resource *specinfra_file(specinfra *, char *);
+extern file *specinfra_file(specinfra *, char *);
 extern void specinfra_free(specinfra *);
 
 
-extern int file_mode(file_resource *);
-extern void file_free(file_resource *);
+extern int file_mode(file *);
+extern void file_free(file *);
 
 static void mrb_specinfra_free(mrb_state *mrb, void *ptr);
 static void mrb_file_free(mrb_state *mrb, void *ptr);
@@ -29,11 +29,11 @@ mrb_value new(mrb_state *mrb, mrb_value self)
     return self;
 }
 
-mrb_value file(mrb_state *mrb, mrb_value self)
+mrb_value get_file(mrb_state *mrb, mrb_value self)
 {
     mrb_value v;
     char *name;
-    file_resource *f;
+    file *f;
     struct RClass *file_class;
     mrb_value file_object;
 
@@ -51,7 +51,7 @@ mrb_value file(mrb_state *mrb, mrb_value self)
 
 mrb_value mode(mrb_state *mrb, mrb_value self)
 {
-    file_resource *f;
+    file *f;
     int m;
 
     f = DATA_PTR(self);
@@ -76,7 +76,7 @@ void mrb_mruby_object_gem_init(mrb_state *mrb)
 
     s = mrb_define_class(mrb, "Specinfra", mrb->object_class);
     mrb_define_method(mrb, s, "initialize", new, MRB_ARGS_NONE());
-    mrb_define_method(mrb, s, "file", file, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, s, "file", get_file, MRB_ARGS_REQ(1));
 
     f = mrb_define_class(mrb, "File", mrb->object_class);
     mrb_define_method(mrb, f, "mode", mode, MRB_ARGS_NONE());
