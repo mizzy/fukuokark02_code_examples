@@ -24,13 +24,18 @@ module Libspecinfra
     end
 
     def mode()
-      file_mode(self)
+      mode = file_mode(self)
+      if mode == -1
+        raise file_error(self)
+      end
+      mode
     end
 
     extend FFI::Library
     ffi_lib 'error'
-    attach_function :file_free, [File], :void
-    attach_function :file_mode, [File], :int
+    attach_function :file_free, [File],  :void
+    attach_function :file_mode, [File],  :int
+    attach_function :file_error, [File], :string
   end
 
   class Specinfra < FFI::AutoPointer
@@ -55,4 +60,9 @@ end
 b = Libspecinfra::Backend::Direct::Binding.new
 s = Libspecinfra::Specinfra::Binding.new(b)
 f = s.file("/etc/passwd")
-printf("%#o\n", f.mode)
+
+begin
+  printf("%#o\n", f.mode)
+rescue => e
+  puts e.message
+end

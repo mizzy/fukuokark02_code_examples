@@ -14,6 +14,7 @@ extern backend *direct_new(void);
 
 extern int file_mode(file *);
 extern void file_free(file *);
+extern char *file_error(file *);
 
 static void mrb_specinfra_free(mrb_state *mrb, void *ptr);
 static void mrb_file_free(mrb_state *mrb, void *ptr);
@@ -72,7 +73,12 @@ mrb_value mode(mrb_state *mrb, mrb_value self)
 
     f = DATA_PTR(self);
     m = file_mode(f);
-    return mrb_fixnum_value(m);
+
+    if (m < 0) {
+        mrb_raise(mrb, E_RUNTIME_ERROR, file_error(f));
+    } else {
+        return mrb_fixnum_value(m);
+    }
 }
 
 static void mrb_specinfra_free(mrb_state *mrb, void *ptr)

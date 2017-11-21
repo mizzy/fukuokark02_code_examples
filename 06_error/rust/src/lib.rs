@@ -1,6 +1,7 @@
 extern crate libc;
 
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
+use std::result::Result;
 use libc::{c_char, int32_t};
 
 #[derive(Copy, Clone)]
@@ -11,8 +12,8 @@ pub struct Specinfra<'a> {
 #[derive(Copy, Clone)]
 pub struct File<'a> {
     name: &'a str,
+    error: &'a str,
 }
-
 
 impl<'a> Specinfra<'a> {
     pub fn new(b: &Backend) -> Specinfra {
@@ -21,14 +22,18 @@ impl<'a> Specinfra<'a> {
     }
 
     pub fn file(self, name: &str) -> File {
-        File { name: name }
+        File {
+            name: name,
+            error: "",
+        }
     }
 }
 
 impl<'a> File<'a> {
-    pub fn mode(self) -> i32 {
+    pub fn mode(self) -> Result<i32, &'a str> {
         // パーミッションを取得して返す処理を入れる
-        0o644
+        // Ok(0o644)
+        Err("error")
     }
 }
 
@@ -91,13 +96,29 @@ pub extern "C" fn specinfra_file<'a>(ptr: *const Specinfra,
 }
 
 #[no_mangle]
-pub extern "C" fn file_mode(ptr: *const File) -> int32_t {
+pub extern "C" fn file_mode(ptr: *mut File) -> int32_t {
+    let f = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    match f.mode() {
+        Ok(mode) => mode,
+        Err(e) => {
+            f.error = e;
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn file_error(ptr: *const File) -> *const c_char {
     let f = unsafe {
         assert!(!ptr.is_null());
         &*ptr
     };
 
-    f.mode()
+    CString::new(f.error).unwrap().into_raw()
 }
 
 #[no_mangle]
