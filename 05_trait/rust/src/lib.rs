@@ -4,16 +4,20 @@ use std::ffi::CStr;
 use libc::{c_char, int32_t};
 
 #[derive(Copy, Clone)]
-pub struct Specinfra;
+pub struct Specinfra<'a> {
+    backend: &'a Backend,
+}
 
 #[derive(Copy, Clone)]
 pub struct File<'a> {
     name: &'a str,
 }
 
-impl Specinfra {
-    pub fn new() -> Specinfra {
-        Specinfra
+
+impl<'a> Specinfra<'a> {
+    pub fn new(b: &Backend) -> Specinfra {
+        b.detect_platform();
+        Specinfra { backend: b }
     }
 
     pub fn file(self, name: &str) -> File {
@@ -28,9 +32,33 @@ impl<'a> File<'a> {
     }
 }
 
+pub trait Backend {
+    fn detect_platform(&self) -> &str;
+}
+
+pub struct Direct;
+
+impl Backend for Direct {
+    fn detect_platform(&self) -> &str {
+        "Linux"
+    }
+}
+
+impl Direct {
+    pub fn new() -> Direct {
+        Direct
+    }
+}
+
+pub struct BackendWrapper(pub Box<Backend>);
+
 #[no_mangle]
-pub extern "C" fn specinfra_new() -> *const Specinfra {
-    let s = Specinfra::new();
+pub extern "C" fn specinfra_new<'a>(ptr: *const BackendWrapper) -> *const Specinfra<'a> {
+    let b = unsafe {
+        assert!(!ptr.is_null());
+        &*ptr
+    };
+    let s = Specinfra::new(&*b.0);
     Box::into_raw(Box::new(s))
 }
 
@@ -74,6 +102,24 @@ pub extern "C" fn file_mode(ptr: *const File) -> int32_t {
 
 #[no_mangle]
 pub extern "C" fn file_free(ptr: *mut File) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn direct_new() -> *mut BackendWrapper {
+    let d = Direct::new();
+    let b = BackendWrapper(Box::new(d));
+    Box::into_raw(Box::new(b))
+}
+
+
+#[no_mangle]
+pub extern "C" fn direct_free(ptr: *mut Direct) {
     if ptr.is_null() {
         return;
     }
